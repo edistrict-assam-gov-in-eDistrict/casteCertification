@@ -1,0 +1,801 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Caste Certificate - Government of Assam</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+    <style>
+      :root {
+        --app-bg: #f1f1f6;
+        --accent: #8b6bd8;
+      }
+      * {
+        box-sizing: border-box;
+        -webkit-print-color-adjust: exact;
+      }
+      body {
+        background: var(--app-bg);
+        margin: 0;
+        padding: 0;
+        font-family: "Times New Roman", Times, serif;
+      }
+      .viewer-body {
+        display: flex;
+        justify-content: center;
+        padding: 40px 0;
+      }
+
+      #certificate {
+        width: 210mm;
+        height: 297mm;
+        background: white;
+        padding: 12mm 15mm;
+        position: relative;
+        color: #000;
+        border: 1px solid #000;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        display: flex;
+        flex-direction: column;
+      }
+
+      .header-wrap {
+        display: grid;
+        grid-template-columns: 80px 1fr 80px;
+        align-items: center;
+        border-bottom: 2px solid #000;
+        padding-bottom: 8px;
+        margin-bottom: 12px;
+      }
+
+      .header-content {
+        text-align: center;
+      }
+      .header-content p {
+        margin: 1px 0;
+        font-weight: bold;
+        font-size: 14px;
+      }
+      .header-content h2 {
+        margin: 3px 0;
+        font-size: 20px;
+      }
+
+      .meta-container {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 15px;
+        font-size: 13px;
+      }
+      #barcodeSvg {
+        width: 150px;
+        height: 45px;
+      }
+      .barcode-text {
+        text-align: center;
+        font-size: 12px;
+        margin-top: 2px;
+        letter-spacing: 0.5px;
+      }
+
+      .title-block {
+        text-align: center;
+        margin: 10px 0;
+      }
+      .title-block h1 {
+        font-size: 22px;
+        text-decoration: underline;
+        margin: 2px 0;
+      }
+
+      /* Adjusted Middle Spacing */
+      .middle-section {
+        font-size: 14px;
+        line-height: 1.5;
+        flex-grow: 1;
+      }
+      .assamese-grid {
+        display: grid;
+        grid-template-columns: 1fr 1.2fr 1fr;
+        column-gap: 5px;
+        row-gap: 8px;
+        align-items: baseline;
+        margin-bottom: 10px;
+      }
+      .assamese-grid .value {
+        font-weight: bold;
+        text-transform: uppercase;
+        border-bottom: none;
+      }
+      .assamese-line {
+        margin: 12px 0;
+        font-weight: bold;
+      }
+      .eng-para {
+        margin: 8px 0;
+        font-size: 13.5px;
+        line-height: 1.6;
+        text-align: justify;
+      }
+
+      /* Footer Area - Line Removed */
+      .footer-block {
+        width: 100%;
+        margin-top: 8px;
+        padding-bottom: 5mm;
+      }
+      .footer-wrap {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        margin-bottom: 8px;
+      }
+
+      .qr-photo-group {
+        display: flex;
+        gap: 20px;
+        align-items: flex-start;
+      }
+      .photo-box {
+        margin-left: 80px;
+      }
+      #qr-box {
+        width: 130px;
+        height: 130px;
+        position: relative;
+        border: 1px solid #000;
+        background: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex: 0 0 130px;
+        overflow: hidden;
+        padding: 6px;
+      }
+      .qr-fallback {
+        font-size: 11px;
+        letter-spacing: 0.5px;
+      }
+      .photo-box {
+        width: 85px;
+        height: 105px;
+        border: 1px solid #000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #fff;
+        font-size: 12px;
+      }
+      .photo-url {
+        display: none;
+      }
+
+      .sig-section {
+        text-align: right;
+        font-size: 11px;
+        font-weight: normal;
+        padding-bottom: 4px;
+      }
+      .sig-auth-title {
+        font-size: 11px;
+        font-weight: bold;
+        display: block;
+        margin-bottom: 4px;
+      }
+      .sig-container {
+        display: flex;
+        align-items: flex-start;
+        justify-content: flex-end;
+        gap: 8px;
+      }
+      .sig-valid-text {
+        font-size: 10.5px;
+        display: block;
+        margin-bottom: 2px;
+      }
+      .sig-details {
+        font-size: 8px;
+        line-height: 1.2;
+      }
+      .green-tick {
+        width: 60px;
+        height: auto;
+      }
+
+      /* Note Section Border */
+      .notes-area {
+        font-size: 10px;
+        line-height: 1.3;
+        border-top: none;
+        padding-top: 0;
+      }
+
+      .csc-footer {
+        margin-top: 8px;
+        display: flex;
+        justify-content: space-between;
+        font-size: 12px;
+      }
+
+      .editable {
+        cursor: text;
+        border-bottom: none;
+      }
+      .fab {
+        position: fixed;
+        right: 30px;
+        bottom: 30px;
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: var(--accent);
+        color: white;
+        border: none;
+        cursor: pointer;
+        font-size: 24px;
+      }
+      .download-bar {
+        display: flex;
+        justify-content: center;
+        margin: 16px 0;
+      }
+      .download-btn {
+        background: #000;
+        color: #fff;
+        border: none;
+        padding: 10px 20px;
+        font-weight: bold;
+        cursor: pointer;
+      }
+      .read-only .download-bar,
+      .read-only .fab {
+        display: none !important;
+      }
+
+      @media print {
+        @page {
+          size: A4;
+          margin: 0;
+        }
+        .fab {
+          display: none;
+        }
+        #certificate {
+          border: none;
+          box-shadow: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="download-bar">
+      <button class="download-btn" onclick="savePDF()">DOWNLOAD PDF</button>
+    </div>
+    <div class="viewer-body">
+      <div id="certificate">
+        <div class="header-wrap">
+          <img
+            src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/55/Emblem_of_India.svg/800px-Emblem_of_India.svg.png"
+            style="width: 65px"
+          />
+          <div class="header-content">
+            <p>অসম চৰকাৰ</p>
+            <h2>GOVERNMENT OF ASSAM</h2>
+            <p>OFFICE OF THE DISTRICT COMMISSIONER</p>
+            <h3>
+              <span class="editable" contenteditable="true"
+                >TINSUKIA DISTRICT</span
+              >
+            </h3>
+          </div>
+          <div style="width: 65px; text-align: right">
+            <img
+              src="logo.png"
+              alt="Logo"
+              style="width: 60px; height: 60px; object-fit: contain"
+            />
+          </div>
+        </div>
+
+        <div class="meta-container">
+          <div>
+            Certificate No:
+            <span class="editable" id="certNo" contenteditable="true"
+              >21102025-001-14852754</span
+            ><br />
+            <svg id="barcodeSvg"></svg>
+            <div id="barcodeText" class="barcode-text"></div>
+          </div>
+          <div style="text-align: right">
+            Application No:
+            <span class="editable" data-field="appNo" contenteditable="true"
+              >SSDG/ED/CASTE/108855237</span
+            ><br />
+            Date:
+            <span class="editable" data-field="date" contenteditable="true"
+              >21-10-2025</span
+            >
+          </div>
+        </div>
+
+        <div class="title-block">
+          <p>জাতিৰ প্ৰমাণ পত্র</p>
+          <h1>CASTE CERTIFICATE</h1>
+        </div>
+
+        <div class="middle-section">
+          <div class="assamese-grid">
+            <div>ইয়াৰ দ্বাৰা প্ৰমাণিত কৰা হ’ল যে</div>
+            <div style="text-align: center">
+              <span
+                class="editable value"
+                data-field="name"
+                contenteditable="true"
+                >SUMIT KUMAR</span
+              >
+            </div>
+            <div style="text-align: right">
+              ব পুত্ৰ / কন্যা / পত্নী / স্বামী
+            </div>
+
+            <div>
+              পিতা:
+              <span
+                class="editable value"
+                data-field="father"
+                contenteditable="true"
+                >KUSHAL PAL SINGH</span
+              >
+            </div>
+            <div style="text-align: center">
+              গাঁও / নগৰ :
+              <span
+                class="editable value"
+                data-field="village"
+                contenteditable="true"
+                >NALANIHULA GAON</span
+              >
+            </div>
+            <div style="text-align: right">
+              (পোঃ তঃ)
+              <span
+                class="editable value"
+                data-field="mouza"
+                contenteditable="true"
+                >RANGAGORA S.O</span
+              >
+            </div>
+
+            <div>
+              আকৰ্ষি চকী :
+              <span
+                class="editable value"
+                data-field="circle"
+                contenteditable="true"
+                >TINSUKIA</span
+              >
+            </div>
+            <div style="text-align: center">
+              জিলা :
+              <span
+                class="editable value"
+                data-field="district"
+                contenteditable="true"
+                >TINSUKIA</span
+              >
+            </div>
+            <div></div>
+
+            <div>অসম ৰাজ্যৰ,</div>
+            <div style="text-align: center">
+              <span
+                class="editable value"
+                data-field="caste"
+                contenteditable="true"
+                >GOWALA</span
+              >
+            </div>
+            <div style="text-align: right">জাতি / সম্প্রদায়ৰ লোক হয়,</div>
+          </div>
+
+          <div class="assamese-line">
+            ই অসমৰ চৰকাৰৰ দ্বারা পিছপৰা জাতি/অন্যান্য অতি পিছপৰা জাতি হিচাপে
+            স্বীকৃত।
+          </div>
+
+          <div class="eng-para">
+            This is to certify that
+            <b
+              ><span class="editable" data-field="name" contenteditable="true"
+                >SUMIT KUMAR</span
+              ></b
+            >
+            Son/Daughter of
+            <b
+              ><span class="editable" data-field="father" contenteditable="true"
+                >KUSHAL PAL SINGH</span
+              ></b
+            >
+            Vill/Town
+            <b
+              ><span
+                class="editable"
+                data-field="village"
+                contenteditable="true"
+                >NALANIHULA GAON</span
+              ></b
+            >
+            P.O
+            <b
+              ><span class="editable" data-field="mouza" contenteditable="true"
+                >RANGAGORA</span
+              ></b
+            >
+            P.S
+            <b
+              ><span class="editable" data-field="circle" contenteditable="true"
+                >TINSUKIA</span
+              ></b
+            >
+            District -
+            <b
+              ><span
+                class="editable"
+                data-field="district"
+                contenteditable="true"
+                >TINSUKIA</span
+              ></b
+            >
+            in the State of Assam belongs to the
+            <b
+              ><span class="editable" data-field="caste" contenteditable="true"
+                >GOWALA</span
+              ></b
+            >
+            caste/community which is recognised as Other Backward Class/More
+            Other Backward Class by Govt. of Assam.
+          </div>
+
+          <div class="eng-para">
+            1. Shri/Srimati/*Kumari *:
+            <b
+              ><span class="editable" data-field="name" contenteditable="true"
+                >SUMIT KUMAR</span
+              ></b
+            >
+            and his/her family ordinarily reside(s) in Village/Town* :
+            <b
+              ><span
+                class="editable"
+                data-field="village"
+                contenteditable="true"
+                >NALANIHULA GAON</span
+              ></b
+            >
+            of
+            <b
+              ><span
+                class="editable"
+                data-field="district"
+                contenteditable="true"
+                >TINSUKIA</span
+              ></b
+            >
+            District/Subdivision* in the state of <b>ASSAM</b>.
+          </div>
+
+          <br />
+          <br />
+          <div class="footer-block">
+            <div class="footer-wrap">
+              <div class="qr-photo-group">
+                <div id="qr-box"><span class="qr-fallback">QR</span></div>
+                <div>
+                  <div
+                    class="photo-box"
+                    onclick="document.getElementById('photoInput').click()"
+                  >
+                    <img
+                      id="photoImg"
+                      style="
+                        display: none;
+                        width: 100%;
+                        height: 100%;
+                        object-fit: cover;
+                      "
+                    />
+                    <span id="photoText">PHOTO</span>
+                  </div>
+                  <div class="photo-url">
+                    <span
+                      class="editable"
+                      data-field="photoUrl"
+                      contenteditable="true"
+                      >photo.jpg</span
+                    >
+                  </div>
+                </div>
+                <input
+                  type="file"
+                  id="photoInput"
+                  style="display: none"
+                  accept="image/*"
+                />
+              </div>
+              <div class="sig-section">
+                <span class="sig-auth-title"
+                  >Signature of Approving Authority</span
+                >
+
+                <div class="sig-container">
+                  <div class="text-side">
+                    <span class="sig-valid-text editable" contenteditable="true"
+                      >Signature invalid</span
+                    >
+                    <div class="sig-details">
+                      Digitally Signed.<br />
+                      Name:
+                      <span class="editable" contenteditable="true"
+                        >KRITIKA SARMAH</span
+                      ><br />
+                      Date:
+                      <span class="editable" contenteditable="true"
+                        >12-Dec-2025 12:41:45</span
+                      ><br />
+                      Reason:
+                      <span class="editable" contenteditable="true"
+                        >eDistrict</span
+                      ><br />
+                      Location:
+                      <span class="editable" contenteditable="true">Assam</span>
+                    </div>
+                  </div>
+                  <img src="question.jpg" class="green-tick" alt="Valid" />
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="notes-area">
+            <b>NOTE :</b>
+            <ol style="margin: 2px 0 0 15px; padding: 0">
+              <li>
+                This certificate is digitally signed and therefore needs no
+                physical signature.
+              </li>
+              <li>
+                Authenticity can be verified from
+                http://www.assam.gov.in/certificate-verification.
+              </li>
+              <li>
+                This certificate is legally valid as per the Information
+                Technology Act 2000.
+              </li>
+              <li>Tampering of this certificate will attract penal action.</li>
+            </ol>
+          </div>
+
+          <div class="csc-footer">
+            <div>
+              CSC Name :
+              <span contenteditable="true" class="editable"
+                >________________</span
+              >
+            </div>
+            <div>CSC ID : 17006917</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <button class="fab" onclick="savePDF()">💾</button>
+
+    <script>
+      function updateBarcode() {
+        const certNo = document.getElementById("certNo").innerText.trim();
+        const digits = certNo.replace(/[^0-9]/g, "");
+        const textEl = document.getElementById("barcodeText");
+        if (textEl) textEl.innerText = digits;
+        JsBarcode("#barcodeSvg", digits, {
+          format: "CODE128",
+          displayValue: false,
+          height: 40,
+          width: 1.5,
+        });
+        const svgEl = document.getElementById("barcodeSvg");
+        if (textEl && svgEl) {
+          const w = svgEl.getBoundingClientRect().width;
+          textEl.style.width = `${w}px`;
+        }
+      }
+
+      function generateQR() {
+        const qrBox = document.getElementById("qr-box");
+        qrBox.innerHTML = "";
+        const publicVerifyUrl =
+          "https://kajalsharma987.github.io/IncomeCertification/verify.html";
+        const url = new URL(publicVerifyUrl);
+        url.searchParams.set("r", "1");
+        url.searchParams.set(
+          "cn",
+          document.getElementById("certNo").innerText.trim(),
+        );
+        url.searchParams.set(
+          "an",
+          document.querySelector('[data-field="appNo"]')?.innerText?.trim() ||
+            "",
+        );
+        url.searchParams.set(
+          "dt",
+          document.querySelector('[data-field="date"]')?.innerText?.trim() ||
+            "",
+        );
+        url.searchParams.set("n", getFieldValue("name"));
+        url.searchParams.set("f", getFieldValue("father"));
+        url.searchParams.set("v", getFieldValue("village"));
+        url.searchParams.set("m", getFieldValue("mouza"));
+        url.searchParams.set("c", getFieldValue("circle"));
+        url.searchParams.set("d", getFieldValue("district"));
+        url.searchParams.set("ca", getFieldValue("caste"));
+        let photoUrl = getFieldValue("photoUrl");
+        if (photoUrl) {
+          if (!/^https?:/i.test(photoUrl)) {
+            photoUrl = new URL(photoUrl, publicVerifyUrl).toString();
+          }
+          url.searchParams.set("pu", photoUrl);
+        }
+        new QRCode(qrBox, {
+          text: url.toString(),
+          width: 120,
+          height: 120,
+          correctLevel: QRCode.CorrectLevel.H,
+        });
+      }
+
+      function ensureQrLib(ready) {
+        if (window.QRCode) {
+          ready();
+          return;
+        }
+        const fallbacks = [
+          "https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js",
+          "https://unpkg.com/qrcodejs@1.0.0/qrcode.min.js",
+        ];
+        const loadNext = () => {
+          if (!fallbacks.length) {
+            const qrBox = document.getElementById("qr-box");
+            if (qrBox) {
+              qrBox.innerHTML = '<span class="qr-fallback">QR OFFLINE</span>';
+            }
+            return;
+          }
+          const src = fallbacks.shift();
+          const script = document.createElement("script");
+          script.src = src;
+          script.onload = () => ready();
+          script.onerror = () => loadNext();
+          document.head.appendChild(script);
+        };
+        loadNext();
+      }
+
+      function getFieldValue(key) {
+        const el = document.querySelector(`[data-field="${key}"]`);
+        return el ? el.innerText.trim() : "";
+      }
+
+      function setFieldValue(key, value) {
+        document.querySelectorAll(`[data-field="${key}"]`).forEach((el) => {
+          el.innerText = value;
+        });
+      }
+
+      document.addEventListener("input", (e) => {
+        const el = e.target;
+        if (el && el.classList && el.classList.contains("editable")) {
+          const key = el.getAttribute("data-field");
+          if (key) {
+            const val = el.innerText;
+            document
+              .querySelectorAll(`[data-field="${key}"]`)
+              .forEach((node) => {
+                if (node !== el) node.innerText = val;
+              });
+          }
+          if (el.id === "certNo") {
+            updateBarcode();
+          }
+          ensureQrLib(generateQR);
+        }
+      });
+
+      document.getElementById("photoInput").onchange = function (e) {
+        const reader = new FileReader();
+        reader.onload = function (event) {
+          const img = document.getElementById("photoImg");
+          img.src = event.target.result;
+          img.style.display = "block";
+          document.getElementById("photoText").style.display = "none";
+        };
+        reader.readAsDataURL(e.target.files[0]);
+      };
+
+      async function savePDF() {
+        const { jsPDF } = window.jspdf;
+        const element = document.getElementById("certificate");
+        const canvas = await html2canvas(element, { scale: 3, useCORS: true });
+        const imgData = canvas.toDataURL("image/jpeg", 1.0);
+        const pdf = new jsPDF("p", "mm", "a4");
+        pdf.addImage(imgData, "JPEG", 0, 0, 210, 297);
+        pdf.save("Caste_Certificate.pdf");
+      }
+
+      window.onload = () => {
+        const params = new URLSearchParams(window.location.search);
+        const hash = window.location.hash ? window.location.hash.slice(1) : "";
+        if (hash) {
+          const parts = hash.split("~").map((v) => decodeURIComponent(v || ""));
+          if (parts.length >= 1) params.set("certNo", parts[0] || "");
+          if (parts.length >= 2) params.set("appNo", parts[1] || "");
+          if (parts.length >= 3) params.set("date", parts[2] || "");
+          if (parts.length >= 4) params.set("name", parts[3] || "");
+          if (parts.length >= 5) params.set("father", parts[4] || "");
+          if (parts.length >= 6) params.set("village", parts[5] || "");
+          if (parts.length >= 7) params.set("mouza", parts[6] || "");
+          if (parts.length >= 8) params.set("circle", parts[7] || "");
+          if (parts.length >= 9) params.set("district", parts[8] || "");
+          if (parts.length >= 10) params.set("caste", parts[9] || "");
+          if (parts.length >= 11) params.set("photoUrl", parts[10] || "");
+          params.set("read", "1");
+        }
+        if (params.has("n")) params.set("name", params.get("n"));
+        if (params.has("f")) params.set("father", params.get("f"));
+        if (params.has("v")) params.set("village", params.get("v"));
+        if (params.has("m")) params.set("mouza", params.get("m"));
+        if (params.has("c")) params.set("circle", params.get("c"));
+        if (params.has("d")) params.set("district", params.get("d"));
+        if (params.has("ca")) params.set("caste", params.get("ca"));
+        if (params.has("cn")) params.set("certNo", params.get("cn"));
+        if (params.has("an")) params.set("appNo", params.get("an"));
+        if (params.has("dt")) params.set("date", params.get("dt"));
+        if (params.has("pu")) params.set("photoUrl", params.get("pu"));
+
+        if (params.has("name")) setFieldValue("name", params.get("name"));
+        if (params.has("father")) setFieldValue("father", params.get("father"));
+        if (params.has("village"))
+          setFieldValue("village", params.get("village"));
+        if (params.has("mouza")) setFieldValue("mouza", params.get("mouza"));
+        if (params.has("circle")) setFieldValue("circle", params.get("circle"));
+        if (params.has("district"))
+          setFieldValue("district", params.get("district"));
+        if (params.has("caste")) setFieldValue("caste", params.get("caste"));
+        if (params.has("photoUrl"))
+          setFieldValue("photoUrl", params.get("photoUrl"));
+        if (params.has("certNo")) {
+          document.getElementById("certNo").innerText = params.get("certNo");
+        }
+        if (params.has("appNo")) setFieldValue("appNo", params.get("appNo"));
+        if (params.has("date")) setFieldValue("date", params.get("date"));
+        updateBarcode();
+        ensureQrLib(generateQR);
+        const photoUrl =
+          document.querySelector('[data-field="photoUrl"]')?.innerText?.trim() ||
+          "";
+        if (photoUrl) {
+          const img = document.getElementById("photoImg");
+          img.src = photoUrl;
+          img.style.display = "block";
+          document.getElementById("photoText").style.display = "none";
+        }
+        if (params.get("read") === "1" || params.get("r") === "1" || hash) {
+          document.body.classList.add("read-only");
+          document.querySelectorAll(".editable").forEach((el) => {
+            el.setAttribute("contenteditable", "false");
+          });
+        }
+      };
+    </script>
+  </body>
+</html>
