@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -552,7 +552,12 @@
                       <span class="editable" contenteditable="true">Assam</span>
                     </div>
                   </div>
-                  <img src="GreenTick.png" class="green-tick" alt="Valid" />
+                  <img
+                    src="GreenTick.png"
+                    class="green-tick"
+                    alt="Valid"
+                    id="sigStatusImg"
+                  />
                 </div>
               </div>
             </div>
@@ -767,6 +772,13 @@
           document.querySelectorAll(".editable").forEach((el) => {
             el.setAttribute("contenteditable", "false");
           });
+          const sigText = document.querySelector(".sig-valid-text");
+          if (sigText) sigText.innerText = "Signature invalid";
+          const sigImg = document.getElementById("sigStatusImg");
+          if (sigImg) {
+            sigImg.src = "question.jpg";
+            sigImg.alt = "Invalid";
+          }
         }
       };
     </script>
