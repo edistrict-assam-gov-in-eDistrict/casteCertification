@@ -38,9 +38,10 @@
           if (parts.length >= 6) params.set("village", parts[5] || "");
           if (parts.length >= 7) params.set("mouza", parts[6] || "");
           if (parts.length >= 8) params.set("circle", parts[7] || "");
-          if (parts.length >= 9) params.set("district", parts[8] || "");
-          if (parts.length >= 10) params.set("caste", parts[9] || "");
-          if (parts.length >= 11) params.set("photoUrl", parts[10] || "");
+       if (parts.length >= 9) params.set("district", parts[8] || "");
+if (parts.length >= 10) params.set("headerDistrict", parts[9] || ""); // 👈 ADD THIS
+if (parts.length >= 11) params.set("caste", parts[10] || "");
+if (parts.length >= 12) params.set("photoUrl", parts[11] || "");
         }
 
         if (params.has("n")) params.set("name", params.get("n"));
